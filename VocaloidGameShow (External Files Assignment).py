@@ -27,6 +27,7 @@ delete_score = False
 player1 = ''
 game_type = ['image', 'singer', 'sample1', 'sample2', 'sample3', 'producer', 'japanese']
 display_image = ''
+jp_text = ''
 options = []
 songs_list = []
 answer = ''
@@ -170,7 +171,7 @@ def make_window(type):
         return sg.Window("Scoreboard", scoreboard)
     
     elif type == 'tq':
-        title_question = [ [sg.Push(), sg.Text("Round" + str(round), font=('times_new_roman', 12)), sg.Push()],
+        title_question = [ [sg.Push(), sg.Text("Round " + str(round), font=('times_new_roman', 12)), sg.Push()],
                            [sg.Push(), sg.Text("What is this song?", font=('times_new_roman', 12)), sg.Push()],
                            [sg.Push(), sg.Text(jp_text, font=('times_new_roman', 18), pad=20), sg.Push()],
                            [sg.Push(), sg.Button(options[0], size=20), sg.pin(sg.Button(options[1], size=20)), sg.Push()],
@@ -226,12 +227,13 @@ def scoreboard():
         if len(score_data) < 3:
             top3_text = "There's not enough scores to show this portion, go play some more"
         else:
-            top3_scores.append([i, score_dict[i]['score']])
+            top3_scores.append([i, score_dict[i]['score']]) 
             top3_scores.sort(reverse=True, key=sort)
             
-            #Displaying the top 3 scores
-            for i in range(3):
-                top3_text = top3_text + score_dict[top3_scores[i][0]]['name'] + ", " + str(score_dict[top3_scores[i][0]]['score']) + "pts : " + score_dict[top3_scores[i][0]]['date'] + "\n\n"
+    #Displaying the top 3 scores
+    if len(score_data) >= 2:
+        for i in range(0, 3):
+            top3_text = top3_text + score_dict[top3_scores[i][0]]['name'] + ", " + str(score_dict[top3_scores[i][0]]['score']) + "pts : " + score_dict[top3_scores[i][0]]['date'] + "\n\n"
     
     window = make_window('s')
     
@@ -323,6 +325,7 @@ def question_type():
     global round_limit
     global streak
     global player_score
+    global jp_text
     
     options.clear()
     if streak == 0:
@@ -340,7 +343,7 @@ def question_type():
             choice = random.randint(0, 5)
             print(game_type[choice])
         
-        choice = 'image' #FOR DEV USE
+        choice = 'japanese' #FOR DEV USE
         if choice == 'image':
         
             ran_int = random.randint(0, len(songs_list) -1)
@@ -359,6 +362,24 @@ def question_type():
             
             image_question()
             
+        if choice == 'japanese':
+            
+            ran_int = random.randint(0, len(songs_list) -1)
+            answer = game_data['Name'][ran_int]
+            jp_text = game_data['Japanese'][ran_int]
+        
+            for i in range(3):
+                ran_int2 = random.randint(0, len(songs_list) -1)
+                
+                while ran_int == ran_int2 or [i for i in options if i == game_data["Name"][ran_int2]]:
+                    ran_int2 = random.randint(0, len(songs_list) -1)
+
+                options.append(game_data['Name'][ran_int2])
+                
+            options.insert(random.randint(0, 4), game_data['Name'][ran_int])
+            
+            title_question()
+            
     else:
         print('GAME ENDED')
         save_score(player1, player_score)
@@ -371,6 +392,24 @@ def image_question():
     global streak
     
     window = make_window('im')
+    
+    event, values = window.read()
+    
+    if event == answer:
+        print('CORRECT')
+        window.close()
+        streak += 1
+        question_type()
+    else:
+        print("WRONG")
+        window.close()
+        streak = 0
+        question_type()
+        
+def title_question():
+    global streak
+    
+    window = make_window('tq')
     
     event, values = window.read()
     
