@@ -28,6 +28,7 @@ player1 = ''
 game_type = ['image', 'singer', 'sample1', 'sample2', 'sample3', 'producer', 'japanese']
 display_image = ''
 jp_text = ''
+song_text = ''
 options = []
 songs_list = []
 answer = ''
@@ -54,11 +55,11 @@ def default_files(type):
     elif type == 's':
         #Scoreboard
         time_stamp = str(dt.datetime.now())
-        score_dict[0] = "No_Player, " + str(0) + " : " + time_stamp
+        score_dict[0] = "No_Player, 0"
         delete_score = True
         
         with open("Scoreboard.txt", 'w') as score:
-            score.write(score_dict[0])
+            score.write(str(score_dict))
             
 def write_songs():
     temp_list = []
@@ -178,6 +179,31 @@ def make_window(type):
                            [sg.Push(), sg.Button(options[2], size=20), sg.pin(sg.Button(options[3], size=20)), sg.Push()] ]
         
         return sg.Window("Game", title_question)
+    
+    elif type == 'sq':
+        singer_question = [ [sg.Push(), sg.Text("Round " + str(round), font=('times_new_roman', 12)), sg.Push()],
+                            [sg.Push(), sg.Text("Who Sings " + song_text + "?", font=('times_new_roman', 12), pad=20), sg.Push()],
+                            [sg.Push(), sg.Button(options[0], size=20), sg.pin(sg.Button(options[1], size=20)), sg.Push()],
+                            [sg.Push(), sg.Button(options[2], size=20), sg.pin(sg.Button(options[3], size=20)), sg.Push()] ]
+        
+        return sg.Window("Game", singer_question)
+        
+    elif type == 'pq':
+        producer_question = [ [sg.Push(), sg.Text("Round " + str(round), font=('times_new_roman', 12)), sg.Push()],
+                              [sg.Push(), sg.Text("Who Produced " + song_text + "?", font=('times_new_roman', 12), pad=20), sg.Push()],
+                              [sg.Push(), sg.Button(options[0], size=20), sg.pin(sg.Button(options[1], size=20)), sg.Push()],
+                              [sg.Push(), sg.Button(options[2], size=20), sg.pin(sg.Button(options[3], size=20)), sg.Push()] ]
+        
+        return sg.Window("Game", producer_question)
+    
+    elif type == 'sound_q':
+        sound_question = [ [sg.Push(), sg.Text("Round " + str(round), font=('times_new_roman', 12)), sg.Push()],
+                           [sg.Push(), sg.Text("What is this song?", font=('times_new_roman', 12)), sg.Push()],
+                           [sg.Push(), sg.Button("Play", pad=20), sg.pin(sg.Button("Stop", pad=20)), sg.Push()],
+                           [sg.Push(), sg.Button(options[0], size=20), sg.pin(sg.Button(options[1], size=20)), sg.Push()],
+                           [sg.Push(), sg.Button(options[2], size=20), sg.pin(sg.Button(options[3], size=20)), sg.Push()] ]
+        
+        return sg.Window("Game", sound_question)
 
 #Main Menu Function
 def Main_Menu():
@@ -213,36 +239,43 @@ def scoreboard():
     top3_text = ''
     
     #10 last scores
-    for i in score_dict.keys():
-        score_data.append(i)
-    score_data.reverse()
-    
-    for i in range(len(score_data)):
-        if i < limit:    
-            key = score_data[i]
-            score_text = score_text + score_dict[key]['name'] + ", " + str(score_dict[key]['score']) + "pts : " + score_dict[key]['date'] + "\n\n"
-    
-    #Top 3 scores
-    for i in score_data:
+    if not score_dict == {0: "No_Player, 0"}:
+        for i in score_dict.keys():
+            score_data.append(i)
+        score_data.reverse()
+        
+        for i in range(len(score_data)):
+            if i < limit:    
+                key = score_data[i]
+                score_text = score_text + score_dict[key]['name'] + ", " + str(score_dict[key]['score']) + "pts : " + score_dict[key]['date'] + "\n\n"
+        
+        #Top 3 scores
+        for i in score_data:
+            if len(score_data) < 3:
+                top3_text = "There's not enough scores to show this portion, go play some more"
+            else:
+                top3_scores.append([i, score_dict[i]['score']]) 
+                top3_scores.sort(reverse=True, key=sort)
+                
+        #Displaying the top 3 scores
         if len(score_data) < 3:
-            top3_text = "There's not enough scores to show this portion, go play some more"
+                top3_text = "There's not enough scores to show this portion, go play some more"
         else:
-            top3_scores.append([i, score_dict[i]['score']]) 
-            top3_scores.sort(reverse=True, key=sort)
+            for i in range(0, 3):
+                top3_text = top3_text + score_dict[top3_scores[i][0]]['name'] + ", " + str(score_dict[top3_scores[i][0]]['score']) + "pts : " + score_dict[top3_scores[i][0]]['date'] + "\n\n"
+        
+        window = make_window('s')
+        
+        event, values = window.read()
+        
+        if event == 'Exit':
+            print("You broke this somehow")
+        else:
+            window.close()
+            Main_Menu()
             
-    #Displaying the top 3 scores
-    if len(score_data) >= 2:
-        for i in range(0, 3):
-            top3_text = top3_text + score_dict[top3_scores[i][0]]['name'] + ", " + str(score_dict[top3_scores[i][0]]['score']) + "pts : " + score_dict[top3_scores[i][0]]['date'] + "\n\n"
-    
-    window = make_window('s')
-    
-    event, values = window.read()
-    
-    if event == 'Exit':
-        print("You broke this somehow")
     else:
-        window.close()
+        del score_dict[0]
         Main_Menu()
         
 #Sorting function
@@ -326,6 +359,7 @@ def question_type():
     global streak
     global player_score
     global jp_text
+    global song_text
     
     options.clear()
     if streak == 0:
@@ -336,14 +370,13 @@ def question_type():
         round += 1
     
         if pref_dict['Challenge'] == True:
-            choice = random.randint(0, 6)
-            print(game_type[choice])
+            decide = random.randint(0, 6)
+            choice = game_type[decide]
         
         else:
             choice = random.randint(0, 5)
             print(game_type[choice])
         
-        choice = 'japanese' #FOR DEV USE
         if choice == 'image':
         
             ran_int = random.randint(0, len(songs_list) -1)
@@ -362,7 +395,7 @@ def question_type():
             
             image_question()
             
-        if choice == 'japanese':
+        elif choice == 'japanese':
             
             ran_int = random.randint(0, len(songs_list) -1)
             answer = game_data['Name'][ran_int]
@@ -379,6 +412,97 @@ def question_type():
             options.insert(random.randint(0, 4), game_data['Name'][ran_int])
             
             title_question()
+            
+        elif choice == 'singer':
+            vocaloids = ['Miku', 'Rin', 'Len', 'Kaai Yuki', 'Vivid BAD Squad', 'Eve', 'Gumi', 'Luka', 'Kaito'] #CHANGE LATER ONCE MORE SINGERS ARE IN THE GAME
+            
+            ran_int = random.randint(0, len(songs_list) -1)
+            answer = game_data['Singer'][ran_int]
+            song_text = game_data['Name'][ran_int]
+        
+            for i in range(3):
+                ran_int2 = random.randint(0, len(vocaloids) -1)
+                
+                while ran_int == ran_int2 or [i for i in options if i == vocaloids[ran_int2]] or answer == vocaloids[ran_int2]:
+                    ran_int2 = random.randint(0, len(vocaloids) -1)
+
+                options.append(vocaloids[ran_int2])
+                
+            options.insert(random.randint(0, 4), game_data['Singer'][ran_int])
+            
+            singer_question()
+            
+        elif choice == 'producer':
+            producer_list = []
+            for i in game_data['Producer']:
+                producer_list.append(i)
+
+            ran_int = random.randint(0, len(songs_list) -1)
+            answer = game_data['Producer'][ran_int]
+            song_text = game_data['Name'][ran_int]
+        
+            for i in range(3):
+                ran_int2 = random.randint(0, len(producer_list) -1)
+                
+                while ran_int == ran_int2 or [i for i in options if i == producer_list[ran_int2]] or answer == producer_list[ran_int2]:
+                    ran_int2 = random.randint(0, len(producer_list) -1)
+
+                options.append(producer_list[ran_int2])
+                
+            options.insert(random.randint(0, 4), game_data['Producer'][ran_int])
+            
+            producer_question()
+            
+        elif choice == 'sample1':
+            ran_int = random.randint(0, len(songs_list) -1)
+            answer = game_data['Name'][ran_int]
+            play_song = game_data['Sample 1'][ran_int]
+        
+            for i in range(3):
+                ran_int2 = random.randint(0, len(songs_list) -1)
+                
+                while ran_int == ran_int2 or [i for i in options if i == game_data["Name"][ran_int2]]:
+                    ran_int2 = random.randint(0, len(songs_list) -1)
+
+                options.append(game_data['Name'][ran_int2])
+                
+            options.insert(random.randint(0, 4), game_data['Name'][ran_int])
+            
+            sound_question(play_song)
+            
+        elif choice == 'sample2':
+            ran_int = random.randint(0, len(songs_list) -1)
+            answer = game_data['Name'][ran_int]
+            play_song = game_data['Sample 2'][ran_int]
+        
+            for i in range(3):
+                ran_int2 = random.randint(0, len(songs_list) -1)
+                
+                while ran_int == ran_int2 or [i for i in options if i == game_data["Name"][ran_int2]]:
+                    ran_int2 = random.randint(0, len(songs_list) -1)
+
+                options.append(game_data['Name'][ran_int2])
+                
+            options.insert(random.randint(0, 4), game_data['Name'][ran_int])
+            
+            sound_question(play_song)
+            
+        elif choice == 'sample3':
+            ran_int = random.randint(0, len(songs_list) -1)
+            answer = game_data['Name'][ran_int]
+            play_song = game_data['Sample 3'][ran_int]
+        
+            for i in range(3):
+                ran_int2 = random.randint(0, len(songs_list) -1)
+                
+                while ran_int == ran_int2 or [i for i in options if i == game_data["Name"][ran_int2]]:
+                    ran_int2 = random.randint(0, len(songs_list) -1)
+
+                options.append(game_data['Name'][ran_int2])
+                
+            options.insert(random.randint(0, 4), game_data['Name'][ran_int])
+            
+            sound_question(play_song)
             
     else:
         print('GAME ENDED')
@@ -423,6 +547,70 @@ def title_question():
         window.close()
         streak = 0
         question_type()
+        
+def singer_question():
+    global streak
+    
+    window = make_window('sq')
+    
+    event, values = window.read()
+    
+    if event == answer:
+        print('CORRECT')
+        window.close()
+        streak += 1
+        question_type()
+    else:
+        print("WRONG")
+        window.close()
+        streak = 0
+        question_type()
+        
+def producer_question():
+    global streak
+    
+    window = make_window('pq')
+    
+    event, values = window.read()
+    
+    if event == answer:
+        print('CORRECT')
+        window.close()
+        streak += 1
+        question_type()
+    else:
+        print("WRONG")
+        window.close()
+        streak = 0
+        question_type()
+        
+def sound_question(play_song):
+    global streak
+    
+    p = ap('songs/' + play_song)
+    p.volume = pref_dict["Volume"]
+    
+    window = make_window('sound_q')
+    
+    while True:
+        event, values = window.read()
+        
+        if event == answer:
+            print('CORRECT')
+            window.close()
+            streak += 1
+            question_type()
+            break
+        elif event == 'Play':
+            p.play(block=False)
+        elif event == 'Stop':
+            p.stop()
+        else:
+            print("WRONG")
+            window.close()
+            streak = 0
+            question_type()
+            break
         
 def save_score(name, score_num):
     global delete_score
