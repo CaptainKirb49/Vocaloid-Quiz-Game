@@ -25,6 +25,7 @@ score_data = []
 awards_data = {}
 delete_score = False
 player1 = ''
+awards_list = {'3streak': False, '5streak': False, '10streak': False, '0': False, 'LongRound': False, 'ShortRound': False, 'Legend': False}
 game_type = ['image', 'singer', 'sample1', 'sample2', 'sample3', 'producer', 'japanese']
 display_image = ''
 jp_text = ''
@@ -42,6 +43,7 @@ top3_text = ''
 #Fail Safe Function
 def default_files(type):
     global delete_score
+    global awards_data
     if type == "p":
         #Preferences
         pref_dict['Japanese'] = False
@@ -60,6 +62,17 @@ def default_files(type):
         
         with open("Scoreboard.txt", 'w') as score:
             score.write(str(score_dict))
+            score.close()
+            
+    elif type == 'a':
+        #Achievements
+        print("Making a blank achievements list")
+        for i in awards_list:
+            awards_data[i] = False
+            
+        with open("Achievements.txt", 'w') as awards:
+            awards.write(str(awards_data))
+            awards.close()
             
 def write_songs():
     temp_list = []
@@ -92,13 +105,12 @@ except:
 
 try:
     with open("Achievements.txt", 'r') as awards:
-        #awards_data = eval(awards.read()) #Do once achievements are set
+        awards_data = eval(awards.read())
         awards.close()
         
 except:
     with open("Achievements.txt", 'w') as awards:
-        default_files('c')
-        #Fix later, adding in support for all achievements to be set to False
+        default_files('a')
 
 try:
     game_data = pd.read_csv("vocaloid_data.csv")
@@ -214,17 +226,21 @@ def Main_Menu():
     if event == "Play":
         window.close()
         setup_play()
+        
     elif event == "Scoreboard":
         window.close()
         scoreboard()
+        
     elif event == "Achievements":
-        #Do Fourth
         window.close()
         Main_Menu()
+        #TODO ADD DISPLAY FOR ACHIEVEMENTS
         print("Look at dem trophies! That you don't have :trol:")
+        
     elif event == "Options":
         window.close()
         Options_Menu()
+        
     else:
         window.close()
 
@@ -275,7 +291,6 @@ def scoreboard():
             Main_Menu()
             
     else:
-        del score_dict[0]
         Main_Menu()
         
 #Sorting function
@@ -293,9 +308,41 @@ def Options_Menu():
     elif event == "Exit":
         Main_Menu()
         window.close()
+    elif event == 'Clear Save Data':
+        window.close()
+        clear_save()
     else:
         Main_Menu()
         window.close()
+
+def clear_save():
+    global awards_data
+    global pref_dict
+    global score_dict
+    global delete_score
+    
+    #Delete awards data
+    #TODO: ADD AFTER FINISHING ACHIEVEMENTS
+    
+    #Delete options data
+    pref_dict['Japanese'] = False
+    pref_dict['Challenge'] = False
+    pref_dict['Volume'] = 100.0
+    
+    with open("PlayerPreferences.txt", 'w') as prefs:
+        prefs.write(str(pref_dict))
+        prefs.close()
+    
+    #Delete Scoreboard Data
+    score_dict = {}
+    time_stamp = str(dt.datetime.now())
+    score_dict[0] = "No_Player, 0"
+    delete_score = True
+        
+    with open("Scoreboard.txt", 'w') as score:
+        score.write(str(score_dict))
+    
+    Main_Menu()
         
 #Applying options to prefs and writing to file
 def apply_prefs(data):
@@ -360,11 +407,15 @@ def question_type():
     global player_score
     global jp_text
     global song_text
+    global awards_data
     
     options.clear()
     if streak == 0:
         player_score = player_score
     else:
+        if streak == 3:
+            awards_data['3streak'] = True
+            print("ACHIEVEMENT GAINED")
         player_score += 25 * streak 
     if round < round_limit:
         round += 1
@@ -393,7 +444,7 @@ def question_type():
                 
             options.insert(random.randint(0, 4), game_data['Name'][ran_int])
             
-            image_question()
+            ask_question('image')
             
         elif choice == 'japanese':
             
@@ -411,10 +462,10 @@ def question_type():
                 
             options.insert(random.randint(0, 4), game_data['Name'][ran_int])
             
-            title_question()
+            ask_question('title')
             
         elif choice == 'singer':
-            vocaloids = ['Miku', 'Rin', 'Len', 'Kaai Yuki', 'Vivid BAD Squad', 'Eve', 'Gumi', 'Luka', 'Kaito'] #CHANGE LATER ONCE MORE SINGERS ARE IN THE GAME
+            vocaloids = ['Miku', 'Rin', 'Len', 'Kaai Yuki', 'Vivid BAD Squad', 'Eve', 'Gumi', 'Luka', 'Kaito']
             
             ran_int = random.randint(0, len(songs_list) -1)
             answer = game_data['Singer'][ran_int]
@@ -430,7 +481,7 @@ def question_type():
                 
             options.insert(random.randint(0, 4), game_data['Singer'][ran_int])
             
-            singer_question()
+            ask_question('singer')
             
         elif choice == 'producer':
             producer_list = []
@@ -451,7 +502,7 @@ def question_type():
                 
             options.insert(random.randint(0, 4), game_data['Producer'][ran_int])
             
-            producer_question()
+            ask_question('producer')
             
         elif choice == 'sample1':
             ran_int = random.randint(0, len(songs_list) -1)
@@ -512,64 +563,17 @@ def question_type():
         round = 0
         Main_Menu()
         
-def image_question():
+def ask_question(type):
     global streak
     
-    window = make_window('im')
-    
-    event, values = window.read()
-    
-    if event == answer:
-        print('CORRECT')
-        window.close()
-        streak += 1
-        question_type()
-    else:
-        print("WRONG")
-        window.close()
-        streak = 0
-        question_type()
-        
-def title_question():
-    global streak
-    
-    window = make_window('tq')
-    
-    event, values = window.read()
-    
-    if event == answer:
-        print('CORRECT')
-        window.close()
-        streak += 1
-        question_type()
-    else:
-        print("WRONG")
-        window.close()
-        streak = 0
-        question_type()
-        
-def singer_question():
-    global streak
-    
-    window = make_window('sq')
-    
-    event, values = window.read()
-    
-    if event == answer:
-        print('CORRECT')
-        window.close()
-        streak += 1
-        question_type()
-    else:
-        print("WRONG")
-        window.close()
-        streak = 0
-        question_type()
-        
-def producer_question():
-    global streak
-    
-    window = make_window('pq')
+    if type == 'image':
+        window = make_window('im')
+    elif type == 'title':
+        window = make_window('tq')
+    elif type == 'singer':
+        window = make_window('sq')
+    elif type == 'producer':
+        window = make_window('pq')
     
     event, values = window.read()
     
@@ -614,6 +618,11 @@ def sound_question(play_song):
         
 def save_score(name, score_num):
     global delete_score
+    global score_dict
+    with open("Achievements.txt", 'w') as awards:
+        awards.write(str(awards_data))
+        awards.close()
+    
     if delete_score:
         del score_dict[0]
         delete_score = False
