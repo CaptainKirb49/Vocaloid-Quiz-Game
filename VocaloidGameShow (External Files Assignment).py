@@ -37,8 +37,11 @@ round = 0
 round_limit = 0
 player_score = 0
 streak = 0
+iteration = 0
 score_text = ''
 top3_text = ''
+award_title = ''
+awards_text = ''
 
 #Fail Safe Function
 def default_files(type):
@@ -66,7 +69,6 @@ def default_files(type):
             
     elif type == 'a':
         #Achievements
-        print("Making a blank achievements list")
         for i in awards_list:
             awards_data[i] = False
             
@@ -94,6 +96,8 @@ except:
 try:
     with open("Scoreboard.txt", 'r') as score:
         score_dict = eval(score.read())
+        if score_dict == {0: "No_Player, 0"}:
+            delete_score = True
         score.close()
         delete_score = False
 
@@ -136,7 +140,6 @@ def make_window(type):
         
     elif type == 'op':
         options = [ [sg.Push(), sg.Text("Options", font=('times_new_roman', 18, 'bold'), pad=10), sg.Push()],
-                    [sg.Push(), sg.Checkbox("Japanese Sounds", font=('times_new_roman', 12), default=pref_dict['Japanese']), sg.Push()],
                     [sg.Push(), sg.Checkbox("Challenge Questions", font=('times_new_roman', 12), pad=20, default=pref_dict['Challenge']), sg.Push()],
                     [sg.Push(), sg.Slider(range=(0, 100), default_value=pref_dict['Volume'], orientation='h'), sg.Push()],
                     [sg.Push(), sg.Text("Slider Changes The Volume",font=('times_new_roman', 12)), sg.Push()],
@@ -147,7 +150,7 @@ def make_window(type):
     
     elif type == 'mode':
         mode = [ [sg.Push(), sg.Text("What mode would you like to play?", font=('times_new_roman', 12), pad=20), sg.Push()],
-                 [sg.Button("Solo", size=20), sg.pin(sg.Button("Vs. Computer", size=20)), sg.pin(sg.Button("Back", size=20))] ]
+                 [sg.Button("Solo", size=20), sg.pin(sg.Button("Back", size=20))] ]
         
         return sg.Window("Mode Select", mode)
     
@@ -216,7 +219,23 @@ def make_window(type):
                            [sg.Push(), sg.Button(options[2], size=20), sg.pin(sg.Button(options[3], size=20)), sg.Push()] ]
         
         return sg.Window("Game", sound_question)
+    
+    elif type == 'aw':
+        award_granted = [ [sg.Push(), sg.Text("YOU GOT AN ACHIEVEMENT!", font=('times_new_roman', 18, 'bold'), pad=10), sg.Push()],
+                          [sg.Push(), sg.Text(award_title, font=('times_new_roman', 16, 'bold'), pad=10), sg.Push()],
+                          [sg.Push(), sg.Image(source="miku/streak.png", pad=20), sg.Push()],
+                          [sg.Push(), sg.Button("OK", size=20, pad=20), sg.Push()] ]
 
+        return sg.Window("Award", award_granted)
+    
+    elif type == 'am':
+        award_menu = [ [sg.Push(), sg.Text("Achievement Menu", font=('times_new_roman', 18, 'bold'), pad=10), sg.Push()],
+                          [sg.Push(), sg.Text(awards_text, font=('times_new_roman', 16, 'bold'), pad=10), sg.Push()],
+                          [sg.Push(), sg.Image(source="miku/streak.png", pad=20), sg.Push()],
+                          [sg.Push(), sg.Button("Exit", size=20, pad=20), sg.pin(sg.Button("Next", size=20, pad=20)), sg.Push()] ]
+
+        return sg.Window("Awards", award_menu)
+        
 #Main Menu Function
 def Main_Menu():
     window = make_window('mm')
@@ -233,9 +252,7 @@ def Main_Menu():
         
     elif event == "Achievements":
         window.close()
-        Main_Menu()
-        #TODO ADD DISPLAY FOR ACHIEVEMENTS
-        print("Look at dem trophies! That you don't have :trol:")
+        award_menu()
         
     elif event == "Options":
         window.close()
@@ -243,6 +260,55 @@ def Main_Menu():
         
     else:
         window.close()
+        
+#Award Menu
+def award_menu():
+    global awards_text
+    global iteration
+    
+    num_aw = 0
+    aw_array = ["3 Streak", "5 Streak", "10 Streak", "0", "Long Round", "Short Round", "Long Round", "LEGEND"]
+    awards = {}
+    
+    for i in awards_data:
+        if awards_data[i] == True:
+            awards[i] = aw_array[num_aw]
+            num_aw += 1
+        else:
+            awards[i] = "?????"
+            num_aw += 1
+            
+    if iteration == 0:
+        awards_text = awards['3streak']
+    elif iteration == 1:
+        awards_text = awards['5streak']
+    elif iteration == 2:
+        awards_text = awards['10streak']
+    elif iteration == 3:
+        awards_text = awards['0']
+    elif iteration == 4:
+        awards_text = awards['LongRound']
+    elif iteration == 5:
+        awards_text = awards['ShortRound']
+    elif iteration == 6:
+        awards_text = awards['Legend']
+    
+    window = make_window('am')
+    
+    if iteration == 7:
+        window.close()
+        iteration = 0
+    
+    event, values = window.read()
+    
+    if event == "Next":
+        window.close()
+        iteration += 1
+        award_menu()
+    elif event == None or event == "Exit":
+        iteration = 0
+        window.close()
+        Main_Menu()
 
 #Scoreboard Menu Function
 def scoreboard():
@@ -322,7 +388,12 @@ def clear_save():
     global delete_score
     
     #Delete awards data
-    #TODO: ADD AFTER FINISHING ACHIEVEMENTS
+    for i in awards_list:
+        awards_data[i] = False
+        
+    with open("Achievements.txt", 'w') as awards:
+        awards.write(str(awards_data))
+        awards.close()
     
     #Delete options data
     pref_dict['Japanese'] = False
@@ -346,9 +417,8 @@ def clear_save():
         
 #Applying options to prefs and writing to file
 def apply_prefs(data):
-    pref_dict['Japanese'] = data[0]
-    pref_dict['Challenge'] = data[1]
-    pref_dict['Volume'] = data[2]
+    pref_dict['Challenge'] = data[0]
+    pref_dict['Volume'] = data[1]
     
     with open("PlayerPreferences.txt", 'w') as prefs:
         prefs.write(str(pref_dict))
@@ -412,11 +482,27 @@ def question_type():
     options.clear()
     if streak == 0:
         player_score = player_score
+        
     else:
         if streak == 3:
-            awards_data['3streak'] = True
-            print("ACHIEVEMENT GAINED")
-        player_score += 25 * streak 
+            if not awards_data['3streak'] == True:
+                awards_data['3streak'] = True
+                display_award('3streak')
+        if streak == 5:
+            if not awards_data['5streak'] == True:
+                awards_data['5streak'] = True
+                display_award('5streak')
+        if streak == 10:
+            if not awards_data['10streak'] == True:
+                awards_data['10streak'] = True
+                display_award('10streak')
+        if streak == 50:
+            if not awards_data['Legend'] == True:
+                awards_data['Legend'] = True
+                display_award('Legend')
+            
+        player_score += 25 * streak
+        
     if round < round_limit:
         round += 1
     
@@ -425,8 +511,8 @@ def question_type():
             choice = game_type[decide]
         
         else:
-            choice = random.randint(0, 5)
-            print(game_type[choice])
+            decide = random.randint(0, 5)
+            choice = game_type[choice]
         
         if choice == 'image':
         
@@ -557,11 +643,52 @@ def question_type():
             
     else:
         print('GAME ENDED')
+        if round_limit == 50.0:
+            if not awards_data['LongRound']:
+                awards_data['LongRound'] = True
+                display_award('LongRound')
+        if round_limit == 1.0:
+            if not awards_data["ShortRound"] == True:
+                awards_data["ShortRound"] = True
+                display_award('ShortRound')
+        if player_score == 0:
+            if not awards_data['0'] == True:
+                awards_data['0'] = True
+                display_award('0')
         save_score(player1, player_score)
         streak = 0
         player_score = 0
         round = 0
         Main_Menu()
+        
+def display_award(name):
+    global award_title
+    
+    if name == '3streak':
+        award_title = '3 Streak'
+    elif name == '5streak':
+        award_title = '5 Streak'
+    elif name == '10streak':
+        award_title = '10 Streak'
+    elif name == '0':
+        award_title = "0 Points, Skill Issue"
+    elif name == 'LongRound':
+        award_title = '50 Rounds!'
+    elif name == 'ShortRound':
+        award_title = '1 Round!'
+    elif name == 'Legend':
+        award_title = "LEGEND"
+        
+    window = make_window('aw')
+    
+    event, values = window.read()
+    
+    if event == "OK":
+        window.close()
+        question_type()
+    else:
+        window.close()
+        question_type()
         
 def ask_question(type):
     global streak
@@ -601,6 +728,7 @@ def sound_question(play_song):
         
         if event == answer:
             print('CORRECT')
+            p.stop()
             window.close()
             streak += 1
             question_type()
@@ -611,6 +739,7 @@ def sound_question(play_song):
             p.stop()
         else:
             print("WRONG")
+            p.stop()
             window.close()
             streak = 0
             question_type()

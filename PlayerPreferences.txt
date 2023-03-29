@@ -1,1 +1,1 @@
-{'Japanese': False, 'Challenge': True, 'Volume': 50.0}
+{'Japanese': False, 'Challenge': False, 'Volume': 100.0}
