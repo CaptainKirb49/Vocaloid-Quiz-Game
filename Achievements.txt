@@ -1,1 +1,1 @@
-{'3streak': False, '5streak': False, '10streak': False, '0': False, 'LongRound': False, 'ShortRound': False, 'Legend': False}
+{'5streak': False, '10streak': False, '25streak': False, '0': False, 'LongRound': False, 'ShortRound': False, 'Legend': False}
