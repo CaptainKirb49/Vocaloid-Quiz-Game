@@ -1,7 +1,7 @@
 ###########################################################
 #External Files Assignment - Vocaloid Game Show
 #Aiden Mark
-#March 29, 2023
+#March 30, 2023
 ###########################################################
 
 #Credits
@@ -79,6 +79,7 @@ def default_files(type):
             awards.write(str(awards_data))
             awards.close()
             
+#Function for making a list of songs based off the csv data
 def write_songs():
     temp_list = []
     for i in game_data['Name']:
@@ -86,6 +87,7 @@ def write_songs():
     return temp_list
 
 #Opens and writes data from files to variables to be used later
+#Also checks if file exists and calls the fail safe if it doesn't
 try:
     with open("PlayerPreferences.txt", 'r') as prefs:
         pref_dict = eval(prefs.read())
@@ -130,6 +132,7 @@ songs_list = write_songs()
 #Layout function, makes windows to avoid tag conflicts
 def make_window(type):
     global options
+    #Main Menu Layout
     if type == "mm":
         main_menu = [ [sg.Push(), sg.Text("Welcome to the Vocaloid Quiz Game!", font=('times_new_roman', 24, 'bold')), sg.Push()],
                       [sg.Push(), sg.Image("images/TitleImage.png", pad=(20)), sg.Push()],
@@ -140,7 +143,8 @@ def make_window(type):
                       [sg.Push(), sg.Button("Exit", expand_x=True), sg.Push()] ]
         
         return sg.Window("Main Menu", main_menu)
-        
+    
+    #Options Menu Layout
     elif type == 'op':
         options = [ [sg.Push(), sg.Text("Options", font=('times_new_roman', 18, 'bold'), pad=10), sg.Push()],
                     [sg.Push(), sg.Checkbox("Challenge Questions", font=('times_new_roman', 12), pad=20, default=pref_dict['Challenge']), sg.Push()],
@@ -151,6 +155,7 @@ def make_window(type):
         
         return sg.Window("Options", options)
     
+    #Player Name Menu Layout
     elif type == 'pn':
         player_name = [ [sg.Push(), sg.Text("What is your name?", font=('times_new_roman', 12), pad=20), sg.Push()],
                         [sg.Push(), sg.Input(pad=20), sg.Push()],
@@ -158,6 +163,7 @@ def make_window(type):
         
         return sg.Window("Player Name", player_name)
     
+    #Round Picker Menu Layout
     elif type == 'r':
         play_setup = [ [sg.Push(), sg.Slider(range=(1, 50), default_value=10, orientation='h'), sg.Push()],
                        [sg.Push(), sg.Text("Number of Rounds",font=('times_new_roman', 12)), sg.Push()],
@@ -165,6 +171,7 @@ def make_window(type):
         
         return sg.Window("Round Picker", play_setup)
     
+    #Image Question Layout
     elif type == 'im':
         image_question = [ [sg.Push(), sg.Text("Round " + str(round), font=('times_new_roman', 12)), sg.Push()],
                            [sg.Push(), sg.Text("What is this song?", font=('times_new_roman', 12)), sg.Push()],
@@ -174,6 +181,7 @@ def make_window(type):
         
         return sg.Window("Game", image_question)
     
+    #Scoreboard Menu Layout
     elif type == 's':
         scoreboard = [ [sg.Push(), sg.Text("Scoreboard", font=('times_new_roman', 18, 'bold'), pad=10), sg.Push()],
                        [sg.Push(), sg.Text("Top 3 Scores", font=('times_new_roman', 16, 'bold'), pad=10), sg.Push()],
@@ -183,6 +191,7 @@ def make_window(type):
         
         return sg.Window("Scoreboard", scoreboard)
     
+    #Japanese title question
     elif type == 'tq':
         title_question = [ [sg.Push(), sg.Text("Round " + str(round), font=('times_new_roman', 12)), sg.Push()],
                            [sg.Push(), sg.Text("What is this song?", font=('times_new_roman', 12)), sg.Push()],
@@ -192,6 +201,7 @@ def make_window(type):
         
         return sg.Window("Game", title_question)
     
+    #Singer Question
     elif type == 'sq':
         singer_question = [ [sg.Push(), sg.Text("Round " + str(round), font=('times_new_roman', 12)), sg.Push()],
                             [sg.Push(), sg.Text("Who Sings " + song_text + "?", font=('times_new_roman', 12), pad=20), sg.Push()],
@@ -199,7 +209,8 @@ def make_window(type):
                             [sg.Push(), sg.Button(options[2], size=40), sg.pin(sg.Button(options[3], size=40)), sg.Push()] ]
         
         return sg.Window("Game", singer_question)
-        
+    
+    #Producer Question
     elif type == 'pq':
         producer_question = [ [sg.Push(), sg.Text("Round " + str(round), font=('times_new_roman', 12)), sg.Push()],
                               [sg.Push(), sg.Text("Who Produced " + song_text + "?", font=('times_new_roman', 12), pad=20), sg.Push()],
@@ -208,6 +219,7 @@ def make_window(type):
         
         return sg.Window("Game", producer_question)
     
+    #Sound Question
     elif type == 'sound_q':
         sound_question = [ [sg.Push(), sg.Text("Round " + str(round), font=('times_new_roman', 12)), sg.Push()],
                            [sg.Push(), sg.Text("What is this song?", font=('times_new_roman', 12)), sg.Push()],
@@ -217,6 +229,7 @@ def make_window(type):
         
         return sg.Window("Game", sound_question)
     
+    #Awards Notification Menu
     elif type == 'aw':
         award_granted = [ [sg.Push(), sg.Text("YOU GOT AN ACHIEVEMENT!", font=('times_new_roman', 18, 'bold'), pad=10), sg.Push()],
                           [sg.Push(), sg.Text(award_title, font=('times_new_roman', 16, 'bold'), pad=10), sg.Push()],
@@ -225,6 +238,7 @@ def make_window(type):
 
         return sg.Window("Award", award_granted)
     
+    #Awards Menu Layout
     elif type == 'am':
         award_menu = [ [sg.Push(), sg.Text("Achievement Menu", font=('times_new_roman', 18, 'bold'), pad=10), sg.Push()],
                           [sg.Push(), sg.Text(awards_text, font=('times_new_roman', 16, 'bold'), pad=10), sg.Push()],
@@ -233,6 +247,7 @@ def make_window(type):
 
         return sg.Window("Awards", award_menu)
     
+    #Message Layout
     elif type == 'miku':
         miku_message = [  [sg.Push(), sg.Text(message, font=('times_new_roman', 16, 'bold'), pad=10), sg.Push()],
                           [sg.Push(), sg.Image(source="miku/" + reaction, pad=20), sg.Push()],
@@ -286,10 +301,12 @@ def award_menu():
     global iteration
     global reaction
     
+    #Sets variables to be used
     num_aw = 0
     aw_array = ["5 Streak", "10 Streak", "25 Streak", "0", "Long Round", "Short Round", "Long Round", "LEGEND"]
     awards = {}
     
+    #Cycles through the array and determines if award has been collected, displays if it has
     for i in awards_data:
         if awards_data[i] == True:
             awards[i] = aw_array[num_aw]
@@ -298,6 +315,7 @@ def award_menu():
             awards[i] = "?????"
             num_aw += 1
             
+    #Iteration for page # that the menu is on
     if iteration == 0:
         awards_text = awards['5streak']
         
@@ -326,12 +344,14 @@ def award_menu():
     
     window = make_window('am')
     
+    #Closes the window and resets the page count
     if iteration == 7:
         window.close()
         iteration = 0
     
     event, values = window.read()
     
+    #Checks for which button was pressed, executes task for each scenario
     if event == "Next":
         window.close()
         iteration += 1
@@ -409,6 +429,7 @@ def Options_Menu():
         Main_Menu()
         window.close()
 
+#Clearing all saved data from external files
 def clear_save():
     global awards_data
     global pref_dict
@@ -454,6 +475,7 @@ def apply_prefs(data):
     
     Main_Menu()
         
+#Function that prompts player for their name
 def set_solo():
     global player1
     window = make_window('pn')
@@ -468,6 +490,7 @@ def set_solo():
         window.close()
         Main_Menu()
         
+#Function that prompts player for the amount of rounds
 def round_picker():
     global first_round
     global round_limit
@@ -486,6 +509,7 @@ def round_picker():
         window.close()
         set_solo()
     
+#Big function that does most of the heavy lifting for game logic and calling the question to be asked
 def question_type():
     global display_image
     global options
@@ -501,7 +525,10 @@ def question_type():
     
     choice = ''
     
+    #Clears previous question options
     options.clear()
+    
+    #Checks if player lost streak, if not sees if player has a new achievement
     if streak == 0:
         if not first_round:
             miku_message('You lost your streak....', 'whoa')
@@ -526,12 +553,15 @@ def question_type():
             if not awards_data['Legend'] == True:
                 awards_data['Legend'] = True
                 display_award('Legend')
-            
+                
+        #Adds score    
         player_score += 25 * streak
-        
+    
+    #Checks if over round limit
     if round < round_limit:
         round += 1
-    
+        
+        #Checks for challenge option, executes a random type of question based of it
         if pref_dict['Challenge'] == True:
             decide = random.randint(0, 6)
             choice = game_type[decide]
@@ -540,6 +570,7 @@ def question_type():
             decide = random.randint(0, 5)
             choice = game_type[decide]
         
+        #Image Question : Explains process of every other question option
         if choice == 'image':
         
             ran_int = random.randint(0, len(songs_list) -1)
@@ -549,15 +580,18 @@ def question_type():
             for i in range(3):
                 ran_int2 = random.randint(0, len(songs_list) -1)
                 
+                #Checks if ran_int2 is equal to any current options, prevents duplicate answers
                 while ran_int == ran_int2 or [i for i in options if i == game_data["Name"][ran_int2]]:
                     ran_int2 = random.randint(0, len(songs_list) -1)
 
                 options.append(game_data['Name'][ran_int2])
-                
+            
+            #Inserts actual answer into a random location
             options.insert(random.randint(0, 4), game_data['Name'][ran_int])
             
             ask_question('image')
-            
+        
+        #Japanese Title Question
         elif choice == 'japanese':
             
             ran_int = random.randint(0, len(songs_list) -1)
@@ -575,7 +609,8 @@ def question_type():
             options.insert(random.randint(0, 4), game_data['Name'][ran_int])
             
             ask_question('title')
-            
+        
+        #Singer Question
         elif choice == 'singer':
             vocaloids = []
             for i in game_data['Singer']:
@@ -596,7 +631,8 @@ def question_type():
             options.insert(random.randint(0, 4), game_data['Singer'][ran_int])
             
             ask_question('singer')
-            
+        
+        #Producer Question
         elif choice == 'producer':
             producer_list = []
             for i in game_data['Producer']:
@@ -617,7 +653,8 @@ def question_type():
             options.insert(random.randint(0, 4), game_data['Producer'][ran_int])
             
             ask_question('producer')
-            
+        
+        #Song 1 Question
         elif choice == 'sample1':
             ran_int = random.randint(0, len(songs_list) -1)
             answer = game_data['Name'][ran_int]
@@ -634,7 +671,8 @@ def question_type():
             options.insert(random.randint(0, 4), game_data['Name'][ran_int])
             
             sound_question(play_song)
-            
+        
+        #Song 2 Question
         elif choice == 'sample2':
             ran_int = random.randint(0, len(songs_list) -1)
             answer = game_data['Name'][ran_int]
@@ -651,7 +689,8 @@ def question_type():
             options.insert(random.randint(0, 4), game_data['Name'][ran_int])
             
             sound_question(play_song)
-            
+        
+        #Song 3 Question
         elif choice == 'sample3':
             ran_int = random.randint(0, len(songs_list) -1)
             answer = game_data['Name'][ran_int]
@@ -668,13 +707,16 @@ def question_type():
             options.insert(random.randint(0, 4), game_data['Name'][ran_int])
             
             sound_question(play_song)
-            
+    
+    #If the limit has been reached, this code executes 
     else:
+        #Displays amount of points that the user got
         if player_score == 0:
             miku_message('You got ' + str(player_score) + 'pts', 'sorry')
         else:
             miku_message('You got ' + str(player_score) + 'pts', 'greatshow')
-            
+        
+        #Checks for if the user obtained achievements
         if round_limit == 50.0:
             if not awards_data['LongRound']:
                 awards_data['LongRound'] = True
@@ -687,12 +729,17 @@ def question_type():
             if not awards_data['0'] == True:
                 awards_data['0'] = True
                 display_award('0')
+                
+        #Saves Score
         save_score(player1, player_score)
+        
+        #Resets Variables
         streak = 0
         player_score = 0
         round = 0
         Main_Menu()
-        
+
+#Window for displaying award when collected
 def display_award(name):
     global award_title
     
@@ -716,7 +763,8 @@ def display_award(name):
     event, values = window.read()
     
     window.close()
-        
+    
+#Makes a window with the question type and handles streak amount            
 def ask_question(type):
     global streak
     
@@ -740,6 +788,7 @@ def ask_question(type):
         streak = 0
         question_type()
         
+#Makes a question window with sound in it and handles all logic around playing/stopping sound        
 def sound_question(play_song):
     global streak
     
@@ -768,6 +817,7 @@ def sound_question(play_song):
             question_type()
             break
         
+#Function for saving score and achievements
 def save_score(name, score_num):
     global delete_score
     global score_dict
@@ -775,19 +825,10 @@ def save_score(name, score_num):
         awards.write(str(awards_data))
         awards.close()
     
-    if delete_score:
-        del score_dict[0]
-        delete_score = False
-        time_stamp = str(dt.datetime.now())
-        score_dict[time_stamp] = {"name": name, "score": score_num, "date": time_stamp}
-        
-        with open("Scoreboard.txt", 'w') as score:
-            score.write(str(score_dict))
-    else:
-        time_stamp = str(dt.datetime.now())
-        score_dict[time_stamp] = {"name": name, "score": score_num, "date": time_stamp}
-        
-        with open("Scoreboard.txt", 'w') as score:
-            score.write(str(score_dict))
+    time_stamp = str(dt.datetime.now())
+    score_dict[time_stamp] = {"name": name, "score": score_num, "date": time_stamp}
+    
+    with open("Scoreboard.txt", 'w') as score:
+        score.write(str(score_dict))
                 
 Main_Menu()
